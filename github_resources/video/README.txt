@@ -1,0 +1,1 @@
+I really don't know why the .gif version (of nex_v0.2.1-alpha.mp4) has this <..> of quality, try to download the .mp4 version to see it in full quality, don't look at the responses, cause it's not my AI tha tI use in the video, look at animations and GUI.
