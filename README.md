@@ -18,31 +18,31 @@ First status: not checked
     
 Explanation: the application's script has not checked the status yet.
     
-![image](https://github.com/heydocode/Nex/blob/main/screenshots/first_status_not_checked.png)
+![image](https://github.com/heydocode/Nex/blob/main/github_resources/screenshots/first_status_not_checked.png)
     
 Second status: ready
     
 Exlanation: ollama has responded to the backend ping by a list of available AI models. This happens when `nex:latest` is in this list.
     
-![image](https://github.com/heydocode/Nex/blob/main/screenshots/second_status_ready.png)
+![image](https://github.com/heydocode/Nex/blob/main/github_resources/screenshots/second_status_ready.png)
 
 Third status: generating
 
 Explanation: the prompt has been sended to the AI  model. The prompt is processing and the user have to wait until the response won't be received from ollama.
 
-![image](https://github.com/heydocode/Nex/blob/main/screenshots/third_status_generating.png)
+![image](https://github.com/heydocode/Nex/blob/main/github_resources/screenshots/third_status_generating.png)
 
 Fourth status: unavailable
 
 Explanation: 2 possibilities. The first one is "ollama is not running", another one is "nex is not in the list of available models".
 
-![image](https://github.com/heydocode/Nex/blob/main/screenshots/fourth_status_unavailable.png)
+![image](https://github.com/heydocode/Nex/blob/main/github_resources/screenshots/fourth_status_unavailable.png)
     
 Fifth status: unreachable application backend
     
 Explanation: the application's script detects that the backend don't respond to the client.
     
-![image](https://github.com/heydocode/Nex/blob/main/screenshots/fifth_status_unreachable_application_backend.png)
+![image](https://github.com/heydocode/Nex/blob/main/github_resources/screenshots/fifth_status_unreachable_application_backend.png)
 
 </details>
 
