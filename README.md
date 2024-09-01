@@ -105,15 +105,18 @@ If you encounter any problems, feel free to open an issue in this repository. I'
     <summary>Click here to toggle on/off the changelogs' section</summary>
     <details>
         <summary>Nex v0.1.0 >> v0.2.0</summary>
-        ### Output field, typescript, and more!
-        - new output field
-        - added full typescript support
-        - all code has been rewritten in typescript
-        - error handlers have been enhanced & corrected
-        - added an input limit with configuration (limit = constant)
-        - added MarkDown format to output
-        - fixed all bugs & lags in the application
-        - added a constant in rust side to choose the AI model to avoid misconfiguration
+        
+### Output field, typescript, and more!
+
+- new output field
+- added full typescript support
+- all code has been rewritten in typescript
+- error handlers have been enhanced & corrected
+- added an input limit with configuration (limit = constant)
+- added MarkDown format to output
+- fixed all bugs & lags in the application
+- added a constant in rust side to choose the AI model to avoid misconfiguration
+        
     </details>
 </details>
 
