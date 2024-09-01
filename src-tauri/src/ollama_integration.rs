@@ -28,7 +28,7 @@ pub async fn send_ollama_request(history: &str, text_prompt: &str) -> Result<Str
     let prompt = &format!("History: ###\"{}\"### | Current prompt: ###\"{}\"###", history, text_prompt);
     let response = generate_response(prompt).await?;
 
-    println!("Got response \"{}\"", response);
+    // println!("Got response \"{}\"", response);
 
     Ok(response)
 }

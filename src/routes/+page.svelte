@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { invoke } from "@tauri-apps/api/tauri";
-  import { marked, use } from 'marked';
+  import { marked } from 'marked';
 
   // Types
   type Status = "not checked" | "unreachable" | "ready" | "unavailable" | "unreachable application backend" | "generating";
@@ -12,6 +12,11 @@
   let raw_user_output: string = "";
   let user_output: string = "";
   let history: string = "";
+
+  // Necessary to avoid unselecting the send button after cleaning and so the response didn't displays
+  // It happens when a big text is too long to be dewritten and so the append function has no way to execute itself
+  // Now the append function will execute with additional checks to avoid appending when the program want to clear every symbol
+  let clearing: boolean | false;
 
   const prompt_max_length: number = 5000; // Limit the prompt length
 
@@ -44,7 +49,7 @@
   // Print log in console
   async function log(level: number, message: String): Promise<void> {
     try {
-      let response: String = await invoke<string>("log", { level, message });
+      let response: string = await invoke<string>("log", { level, message });
     } catch (error) {
 
     }
@@ -74,7 +79,7 @@
         // Setup interval for incremental output
         const titleInterval = setInterval(() => {
           append_output();
-          if (user_output.length >= raw_user_output.length) {
+          if (user_output.length >= raw_user_output.length && !clearing) {
             clearInterval(titleInterval); // Clear the interval once the output is fully appended
             nex_status = "ready"; // Update the status to ready
           }
@@ -147,28 +152,35 @@
   }
 
   // Clear output
-  function clear_output(): void {
+  function clear_output(): void { 
     raw_user_output = "";
     // Setup interval for incremental output
+    clearing = true;
     const rOutputInterval = setInterval(() => {
       remove_output();
       if (user_output.length <= 1) {
         clearInterval(rOutputInterval); // Clear the interval once the output is fully appended
+        clearing = false;
       }
     }, 1);
   }
 
   // Append output incrementally
   function append_output(): void {
-    if (user_output.length < raw_user_output.length) {
-      user_output += raw_user_output[user_output.length];
+    if (!clearing) {
+      if (user_output.length < raw_user_output.length) {
+        user_output += raw_user_output[user_output.length];
+      }
     }
   }
 
   // Remove 1 chr each iteration from user_output
   function remove_output(): void {
-    if (user_output.length > 1) {
+    if (user_output.length > 2) {
       user_output = user_output.substring(0, user_output.length - 1);
+    }
+    else {
+      user_output = "";
     }
   }
 
