@@ -9,6 +9,55 @@ Nex is a personal project aimed at creating a cool UI with AI support. This proj
 - **User-Friendly UI**: Built with a clean and intuitive interface.
 - **Tauri Framework**: Developed using Tauri for a lightweight and secure desktop application.
 
+## Future Improvements
+<details>
+    <summary>Click here to toggle on/off future improvements/tasks</summary>
+
+We're constantly working to make Nex Assistant more powerful, user-friendly, and feature-rich. Below is a list of planned improvements that will enhance both the functionality and overall experience of the project.
+
+### 🗣️ Chat Speech & Speech-to-Text
+
+- **Voice Interaction**: Implement speech recognition and synthesis to allow users to interact with the virtual assistant using voice commands. This feature will make Nex Assistant more accessible and provide a more natural way to communicate.
+- **Multilingual Support**: Expand speech-to-text and text-to-speech capabilities to support multiple languages, catering to a broader range of users globally.
+
+### 💬 Enhanced Conversational Abilities
+
+- **Contextual Awareness**: Improve the assistant’s ability to maintain context across multiple interactions, allowing for more natural and coherent conversations.
+- **Memory Features**: Enable the assistant to remember user preferences, previous interactions, and personalized data to provide a more tailored experience.
+
+### 🛠️ Internal Functionality & Architecture Enhancements
+
+- **Modular Plugin System**: Develop a plugin architecture that allows users to add or remove features as needed, making the assistant highly customizable and extendable.
+- **Improved Error Handling**: Further refine the error handling mechanisms, making the system more robust and capable of gracefully managing unexpected scenarios.
+- **Performance Optimization**: Continue optimizing the codebase for speed and efficiency, reducing the application’s memory footprint and startup time.
+- **Advanced Configuration Options**: Provide more detailed configuration settings, allowing advanced users to fine-tune the assistant’s behavior and performance.
+
+### 🔍 AI Model & Backend Enhancements
+
+- **Dynamic Model Loading**: Implement a feature that allows users to switch between different AI models on the fly without restarting the application.
+- **AI Model Training**: Introduce basic tools for users to train custom AI models within the Nex Assistant environment, enhancing personalization and relevance.
+- **Backend Refactoring**: Restructure the backend to improve scalability and support future features like real-time collaboration and integration with external APIs.
+
+### 🎨 UI/UX Improvements
+
+- **Dark Mode**: Add a dark mode option for users who prefer a different aesthetic or work in low-light environments.
+- **Customizable Themes**: Allow users to personalize the look and feel of the interface with customizable themes and layouts.
+- **Responsive Design**: Ensure the application is fully responsive and works seamlessly across different screen sizes, including mobile devices.
+
+### 🛡️ Security & Privacy
+
+- **Data Encryption**: Implement end-to-end encryption for all user interactions and data storage, ensuring the highest level of privacy.
+- **User Anonymization**: Provide options for users to anonymize their data, giving them control over what information is stored and processed.
+
+### 🚀 Deployment & Distribution
+
+- **Cross-Platform Support**: Expand support for additional operating systems beyond the current platforms, including Linux and potentially mobile OSes like Android and iOS.
+- **Easy Installer**: Create a user-friendly installer package that simplifies the setup process, making it easier for non-technical users to get started.
+
+These improvements are just the beginning. We are committed to continuously evolving Nex Assistant to meet the needs and expectations of our users. Stay tuned for more updates, and as always, your feedback and contributions are welcome!
+
+</details>
+
 ## Screenshots
 
 <details>
