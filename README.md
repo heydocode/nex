@@ -122,5 +122,5 @@ If you encounter any problems, feel free to open an issue in this repository. I'
 
 ## License
 ```
-This project is licensed under the Apache 2 License. See the LICENSE file for details.
+This project is licensed under the Apache License 2.0. See the LICENSE file for details.
 ```
