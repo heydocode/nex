@@ -11,13 +11,11 @@
   let prompt: string = "";
   let raw_user_output: string = "";
   let user_output: string = "";
-  let history: string = "";
 
-  // Necessary to avoid unselecting the send button after cleaning and so the response didn't displays
-  // It happens when a big text is too long to be dewritten and so the append function has no way to execute itself
-  // Now the append function will execute with additional checks to avoid appending when the program want to clear every symbol
-  let clearing: boolean | false;
+  // Control variable for output clearing
+  let clearing: boolean = false;
 
+  // Constants
   const prompt_max_length: number = 5000; // Limit the prompt length
 
   // Reactive statements
@@ -31,64 +29,63 @@
   let backend_conn: "not checked" | "unreachable" | "connected" = "not checked";
 
   // Test the backend connection
-  async function test_backend(): Promise<void> {
+  async function testBackend(): Promise<void> {
     try {
       console.log("Testing backend connection...");
       backend_conn = "unreachable";
       const result = await invoke<string>("test_backend");
       console.log("Backend test result:", result);
-      if (result === "connected") {
-        backend_conn = "connected";
-      }
+      backend_conn = result === "connected" ? "connected" : "unreachable";
     } catch (error) {
-      log(2, "Backend connection test failed:" + error);
+      console.error("Backend connection test failed:", error);
       backend_conn = "unreachable";
     }
   }
 
   // Print log in console
-  async function log(level: number, message: String): Promise<void> {
+  async function log(level: number, message: string): Promise<void> {
     try {
-      let response: string = await invoke<string>("log", { level, message });
+      await invoke<string>("log", { level, message });
     } catch (error) {
-
+      console.error("Logging failed:", error);
     }
   }
 
   // Check AI status
-  async function check_ai_status(): Promise<void> {
+  async function checkAIStatus(): Promise<void> {
     try {
       const response = await invoke<boolean>("ai_status");
       nex_status = response ? "ready" : "unavailable";
     } catch (error) {
-      log(2, "Failed to check AI status:" + error);
+      console.error("Failed to check AI status:", error);
+      nex_status = "unavailable";
     }
   }
 
-  async function send_prompt(): Promise<void> {
+  async function sendPrompt(): Promise<void> {
     if (backend_conn === "unreachable") {
       nex_status = "unreachable application backend";
       user_output = "Please make sure you're using our latest Nex assistant version";
-    } else {
-      nex_status = "generating";
-      clear_output();
-      try {
-        raw_user_output = await invoke<string>("send_prompt", { history, prompt });
-        history += `${prompt}\n${raw_user_output}`;
+      return;
+    }
 
-        // Setup interval for incremental output
-        const titleInterval = setInterval(() => {
-          append_output();
-          if (user_output.length >= raw_user_output.length && !clearing) {
-            clearInterval(titleInterval); // Clear the interval once the output is fully appended
-            nex_status = "ready"; // Update the status to ready
-          }
-        }, 15);
-      } catch (error) {
-        user_output = "There was an error processing your request. Please try again.";
-        nex_status = "unavailable";
-        log(2, "Failed so send prompt: " + error);
-      }
+    nex_status = "generating";
+    clearOutput();
+
+    try {
+      raw_user_output = await invoke<string>("send_prompt", { prompt });
+
+      const titleInterval = setInterval(() => {
+        appendOutput();
+        if (user_output.length >= raw_user_output.length && !clearing) {
+          clearInterval(titleInterval);
+          nex_status = "ready";
+        }
+      }, 15);
+    } catch (error) {
+      user_output = "There was an error processing your request. Please try again.";
+      nex_status = "unavailable";
+      await log(2, "Failed to send prompt: " + error);
     }
   }
 
@@ -120,18 +117,13 @@
     }
 
     function updateShadow(): void {
-      const color = statusColors[nex_status] || "red";
+      const color = statusColors[nex_status];
       const animate = shouldAnimate(nex_status);
-      const rate = shadowQuantity[nex_status] || 0.0;
+      const rate = shadowQuantity[nex_status] || 0;
 
       if (animate) {
-        if (growing) {
-          shadowSize += rate;
-          if (shadowSize >= 3) growing = false;
-        } else {
-          shadowSize -= rate;
-          if (shadowSize <= rate) growing = true;
-        }
+        shadowSize = growing ? shadowSize + rate : shadowSize - rate;
+        growing = shadowSize >= 3 ? false : shadowSize <= rate ? true : growing;
       } else {
         shadowSize = 1.5;
       }
@@ -152,47 +144,36 @@
   }
 
   // Clear output
-  function clear_output(): void { 
+  function clearOutput(): void {
     raw_user_output = "";
-    // Setup interval for incremental output
     clearing = true;
-    const rOutputInterval = setInterval(() => {
-      remove_output();
+    const clearIntervalId = setInterval(() => {
+      removeOutput();
       if (user_output.length <= 1) {
-        clearInterval(rOutputInterval); // Clear the interval once the output is fully appended
+        clearInterval(clearIntervalId);
         clearing = false;
       }
     }, 1);
   }
 
   // Append output incrementally
-  function append_output(): void {
-    if (!clearing) {
-      if (user_output.length < raw_user_output.length) {
-        user_output += raw_user_output[user_output.length];
-      }
+  function appendOutput(): void {
+    if (!clearing && user_output.length < raw_user_output.length) {
+      user_output += raw_user_output[user_output.length];
     }
   }
 
-  // Remove 1 chr each iteration from user_output
-  function remove_output(): void {
-    if (user_output.length > 2) {
-      user_output = user_output.substring(0, user_output.length - 1);
-    }
-    else {
-      user_output = "";
-    }
+  // Remove one character each iteration from user_output
+  function removeOutput(): void {
+    user_output = user_output.length > 2 ? user_output.slice(0, -1) : "";
   }
 
   // Initialize on mount
   onMount(() => {
-    // Scheduler functions group
     scheduler();
     setInterval(updateTitle, 100);
-
-    // Testing functions group
-    test_backend();
-    check_ai_status();
+    testBackend();
+    checkAIStatus();
   });
 </script>
 
@@ -208,7 +189,7 @@
 
   <p>Nex AI status: <span aria-live="polite">{nex_status}</span></p>
 
-  <form class="form-row" on:submit|preventDefault={send_prompt}>
+  <form class="form-row" on:submit|preventDefault={sendPrompt}>
     <div class="char-counter-container">
       <span id="char-count" class="char-count">{prompt.length}/{prompt_max_length}</span>
     </div>

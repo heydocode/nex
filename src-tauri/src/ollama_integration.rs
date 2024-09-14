@@ -23,10 +23,12 @@ async fn generate_response(text_prompt: &str) -> Result<String> {
     Ok(response.response)
 }
 
-pub async fn send_ollama_request(history: &str, text_prompt: &str) -> Result<String> {
+// pub async fn send_ollama_request(history: &str, text_prompt: &str) -> Result<String> {
+pub async fn send_ollama_request(text_prompt: &str) -> Result<String> {
     // Generate a response from the AI model
-    let prompt = &format!("History: ###\"{}\"### | Current prompt: ###\"{}\"###", history, text_prompt);
-    let response = generate_response(prompt).await?;
+    // let prompt = &format!("History: ###\"{}\"### | Current prompt: ###\"{}\"###", history, text_prompt);
+    // let response = generate_response(prompt).await?;
+    let response = generate_response(text_prompt).await?;
 
     // println!("Got response \"{}\"", response);
 
@@ -39,7 +41,9 @@ pub async fn test_ai_availability() -> bool {
     let ai_list = match ollama.list_local_models().await {
         Ok(models) => models,
         Err(_) => {
+            #[cfg(debug_assertions)]
             println!("Ollama is not running or failed to retrieve models.");
+            
             return false;
         }
     };
@@ -47,6 +51,7 @@ pub async fn test_ai_availability() -> bool {
     let nex_ai_available = ai_list.iter().any(|model| model.name == MODEL);
     
     if !nex_ai_available {
+        #[cfg(debug_assertions)]
         println!("Nex isn't available. Available AI models: \n{:?}", ai_list);
     }
     
