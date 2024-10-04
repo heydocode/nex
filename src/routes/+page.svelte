@@ -1,179 +1,189 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { invoke } from "@tauri-apps/api/tauri";
-  import { marked } from 'marked';
+  // Import necessary modules from Svelte and Tauri
+  import { onMount } from "svelte"; // Lifecycle function to run code when the component is mounted
+  import { invoke } from "@tauri-apps/api/tauri"; // Function to invoke Tauri commands
+  import { marked } from 'marked'; // Library for converting markdown text to HTML
 
-  // Types
+  // Define a type alias for the possible statuses of the application
   type Status = "not checked" | "unreachable" | "ready" | "unavailable" | "unreachable application backend" | "generating";
-  
-  // State variables
-  let nex_status: Status = "not checked";
-  let prompt: string = "";
-  let raw_user_output: string = "";
-  let user_output: string = "";
 
-  // Control variable for output clearing
+  // State variables to track the application status and user input
+  let nex_status: Status = "not checked"; // Current status of the application
+  let prompt: string = ""; // User's input prompt
+  let raw_user_output: string = ""; // Raw output received from the backend
+  let user_output: string = ""; // Formatted user output to be displayed
+
+  // Control variable to manage the state of output clearing
   let clearing: boolean = false;
 
-  // Constants
-  const prompt_max_length: number = 5000; // Limit the prompt length
+  // Constants defining application behavior
+  const prompt_max_length: number = 5000; // Maximum allowed length for the user prompt
+  const statusColors: Record<Status, string> = { // Maps each status to a corresponding color
+    "ready": "lightgreen",
+    "generating": "#ffffff",
+    "not checked": "#ffffff",
+    "unavailable": "red",
+    "unreachable application backend": "red",
+    "unreachable": ""
+  };
+  
+  const shadowQuantity: Record<Status, number> = { // Maps each status to a shadow size quantity
+    "ready": 0.1,
+    "generating": 0.2,
+    "not checked": 0,
+    "unavailable": 0,
+    "unreachable application backend": 0,
+    "unreachable": 0
+  };
 
-  // Reactive statements
-  $: markdown_output = marked(user_output);
-  $: outputVisible = user_output.trim().length > 1;
+  // Reactive statements for automatic updates on data changes
+  $: markdown_output = marked(user_output); // Convert user_output from markdown to HTML
+  $: outputVisible = user_output.trim().length > 1; // Determine visibility of output based on content
 
-  let logo: HTMLElement | null = null;
-  let nex_title: string = '';
-  const title_letters: string = 'Welcome to Nex';
+  let logo: HTMLElement | null = null; // Reference to the logo element
+  let nex_title: string = ''; // Title text to be displayed
+  const title_letters: string = 'Welcome to Nex'; // Title string to be displayed incrementally
+  let backend_conn: "not checked" | "unreachable" | "connected" = "not checked"; // Track backend connection status
 
-  let backend_conn: "not checked" | "unreachable" | "connected" = "not checked";
-
-  // Test the backend connection
+  // Function to test the backend connection
   async function testBackend(): Promise<void> {
+    backend_conn = "unreachable"; // Assume connection is unreachable initially
     try {
-      console.log("Testing backend connection...");
-      backend_conn = "unreachable";
-      const result = await invoke<string>("test_backend");
-      console.log("Backend test result:", result);
-      backend_conn = result === "connected" ? "connected" : "unreachable";
+      console.log("Testing backend connection..."); // Log connection attempt
+      const result = await invoke<string>("test_backend"); // Invoke backend command to test connection
+      backend_conn = result === "connected" ? "connected" : "unreachable"; // Update connection status based on result
     } catch (error) {
-      console.error("Backend connection test failed:", error);
-      backend_conn = "unreachable";
+      console.error("Backend connection test failed:", error); // Log any errors that occur
     }
   }
 
-  // Print log in console
+  // Function to log messages to the console via the backend
   async function log(level: number, message: string): Promise<void> {
     try {
-      await invoke<string>("log", { level, message });
+      await invoke<string>("log", { level, message }); // Invoke backend command to log messages
     } catch (error) {
-      console.error("Logging failed:", error);
+      console.error("Logging failed:", error); // Log any errors that occur
     }
   }
 
-  // Check AI status
+  // Function to check the AI status
   async function checkAIStatus(): Promise<void> {
     try {
-      const response = await invoke<boolean>("ai_status");
-      nex_status = response ? "ready" : "unavailable";
+      const response = await invoke<boolean>("ai_status"); // Invoke backend command to check AI status
+      nex_status = response ? "ready" : "unavailable"; // Update status based on response
     } catch (error) {
-      console.error("Failed to check AI status:", error);
-      nex_status = "unavailable";
+      console.error("Failed to check AI status:", error); // Log any errors that occur
+      nex_status = "unavailable"; // Set status to unavailable on error
     }
   }
 
+  // Function to send the user's prompt to the backend
   async function sendPrompt(): Promise<void> {
+    // If the backend is unreachable, update status and output
     if (backend_conn === "unreachable") {
-      nex_status = "unreachable application backend";
-      user_output = "Please make sure you're using our latest Nex assistant version";
-      return;
+      nex_status = "unreachable application backend"; // Update status
+      user_output = "Please make sure you're using our latest Nex assistant version"; // Inform the user
+      return; // Exit the function
     }
 
-    nex_status = "generating";
-    clearOutput();
+    nex_status = "generating"; // Update status to generating
+    clearOutput(); // Clear previous output
 
     try {
+      // Send prompt to backend and wait for the raw user output
       raw_user_output = await invoke<string>("send_prompt", { prompt });
 
+      // Set an interval to append output gradually
       const titleInterval = setInterval(() => {
-        appendOutput();
+        appendOutput(); // Append output incrementally
+        // If all output has been processed and not clearing, clear the interval and update status
         if (user_output.length >= raw_user_output.length && !clearing) {
-          clearInterval(titleInterval);
-          nex_status = "ready";
+          clearInterval(titleInterval); // Stop the interval
+          nex_status = "ready"; // Update status to ready
         }
-      }, 15);
+      }, 15); // Run every 15 milliseconds
     } catch (error) {
-      user_output = "There was an error processing your request. Please try again.";
-      nex_status = "unavailable";
-      await log(2, "Failed to send prompt: " + error);
+      // On error, update output and status
+      user_output = "There was an error processing your request. Please try again."; // Inform the user
+      nex_status = "unavailable"; // Set status to unavailable
+      await log(2, "Failed to send prompt: " + error); // Log the error
     }
   }
 
   // Scheduler for logo shadow animation
   function scheduler(): number {
-    let shadowSize = 0;
-    let growing = true;
+    let shadowSize = 0; // Initial shadow size
+    let growing = true; // Control variable for growing/shrinking
 
-    const statusColors: Record<Status, string> = {
-      "ready": "lightgreen",
-      "generating": "#ffffff",
-      "not checked": "#ffffff",
-      "unavailable": "red",
-      "unreachable application backend": "red",
-      "unreachable": ""
-    };
-
-    const shadowQuantity: Record<Status, number> = {
-      "ready": 0.1,
-      "generating": 0.2,
-      "not checked": 0,
-      "unavailable": 0,
-      "unreachable application backend": 0,
-      "unreachable": 0
-    };
-
+    // Function to determine if animation should occur based on status
     function shouldAnimate(status: Status): boolean {
-      return status === "ready" || status === "generating";
+      return status === "ready" || status === "generating"; // Animate for specific statuses
     }
 
+    // Function to update the logo shadow based on status
     function updateShadow(): void {
-      const color = statusColors[nex_status];
-      const animate = shouldAnimate(nex_status);
-      const rate = shadowQuantity[nex_status] || 0;
+      const color = statusColors[nex_status]; // Get color for current status
+      const animate = shouldAnimate(nex_status); // Check if animation is needed
+      const rate = shadowQuantity[nex_status] || 0; // Get shadow rate for current status
 
+      // Update shadow size based on whether it's growing or shrinking
       if (animate) {
-        shadowSize = growing ? shadowSize + rate : shadowSize - rate;
+        shadowSize = growing ? shadowSize + rate : shadowSize - rate; // Adjust size
+        // Update growing state based on shadow size boundaries
         growing = shadowSize >= 3 ? false : shadowSize <= rate ? true : growing;
       } else {
-        shadowSize = 1.5;
+        shadowSize = 1.5; // Reset shadow size if not animating
       }
 
+      // Apply the shadow effect to the logo element if it exists
       if (logo) {
-        logo.style.filter = `drop-shadow(0 0 ${shadowSize}em ${color})`;
+        logo.style.filter = `drop-shadow(0 0 ${shadowSize}em ${color})`; // Set drop-shadow effect
       }
     }
 
-    return setInterval(updateShadow, 100);
+    return setInterval(updateShadow, 100); // Run updateShadow every 100 milliseconds
   }
 
-  // Update the title text incrementally
+  // Function to update the title text incrementally
   function updateTitle(): void {
     if (nex_title.length < title_letters.length) {
-      nex_title += title_letters[nex_title.length];
+      nex_title += title_letters[nex_title.length]; // Append the next letter of the title
     }
   }
 
-  // Clear output
+  // Function to clear output
   function clearOutput(): void {
-    raw_user_output = "";
-    clearing = true;
+    raw_user_output = ""; // Reset raw user output
+    clearing = true; // Set clearing state to true
+    // Set an interval to remove output gradually
     const clearIntervalId = setInterval(() => {
-      removeOutput();
+      removeOutput(); // Remove one character from output
+      // If the user output is empty, stop clearing
       if (user_output.length <= 1) {
-        clearInterval(clearIntervalId);
-        clearing = false;
+        clearInterval(clearIntervalId); // Stop the interval
+        clearing = false; // Reset clearing state
       }
-    }, 1);
+    }, 1); // Run every millisecond
   }
 
-  // Append output incrementally
+  // Function to append output incrementally
   function appendOutput(): void {
     if (!clearing && user_output.length < raw_user_output.length) {
-      user_output += raw_user_output[user_output.length];
+      user_output += raw_user_output[user_output.length]; // Append the next character of raw output
     }
   }
 
-  // Remove one character each iteration from user_output
+  // Function to remove one character each iteration from user_output
   function removeOutput(): void {
-    user_output = user_output.length > 2 ? user_output.slice(0, -1) : "";
+    user_output = user_output.length > 2 ? user_output.slice(0, -1) : ""; // Remove the last character, or reset if too short
   }
 
-  // Initialize on mount
+  // Lifecycle method to initialize on component mount
   onMount(() => {
-    scheduler();
-    setInterval(updateTitle, 100);
-    testBackend();
-    checkAIStatus();
+    scheduler(); // Start logo shadow animation
+    setInterval(updateTitle, 100); // Start title update interval
+    testBackend(); // Test backend connection
+    checkAIStatus(); // Check AI status
   });
 </script>
 
