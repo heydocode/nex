@@ -5,56 +5,64 @@
 
   // Types
   type Status = "not checked" | "unreachable" | "ready" | "unavailable" | "unreachable application backend" | "generating";
-
+  
   // State variables
   let nex_status: Status = "not checked";
   let prompt: string = "";
   let raw_user_output: string = "";
   let user_output: string = "";
 
+  // Control variable for output clearing
+  let clearing: boolean = false;
+
   // Constants
-  const prompt_max_length = 5000;
+  const prompt_max_length: number = 5000; // Limit the prompt length
 
   // Reactive statements
   $: markdown_output = marked(user_output);
-  $: outputVisible = user_output.trim().length > 0;
+  $: outputVisible = user_output.trim().length > 1;
 
   let logo: HTMLElement | null = null;
-  let nex_title = '';
-  const title_letters = 'Welcome to Nex';
+  let nex_title: string = '';
+  const title_letters: string = 'Welcome to Nex';
 
   let backend_conn: "not checked" | "unreachable" | "connected" = "not checked";
 
   // Test the backend connection
-  async function testBackend() {
+  async function testBackend(): Promise<void> {
     try {
+      console.log("Testing backend connection...");
       backend_conn = "unreachable";
       const result = await invoke<string>("test_backend");
+      console.log("Backend test result:", result);
       backend_conn = result === "connected" ? "connected" : "unreachable";
-    } catch {
+    } catch (error) {
+      console.error("Backend connection test failed:", error);
       backend_conn = "unreachable";
     }
   }
 
-  // Log messages
-  async function log(level: number, message: string) {
+  // Print log in console
+  async function log(level: number, message: string): Promise<void> {
     try {
       await invoke<string>("log", { level, message });
-    } catch {
-      console.error("Logging failed");
+    } catch (error) {
+      console.error("Logging failed:", error);
     }
   }
 
   // Check AI status
-  async function checkAIStatus() {
+  async function checkAIStatus(): Promise<void> {
     try {
-      nex_status = (await invoke<boolean>("ai_status")) ? "ready" : "unavailable";
-    } catch {
+      const response = await invoke<boolean>("ai_status");
+      nex_status = response ? "ready" : "unavailable";
+    } catch (error) {
+      console.error("Failed to check AI status:", error);
       nex_status = "unavailable";
     }
   }
 
-  async function sendPrompt() {
+  async function sendPrompt(): Promise<void> {
     if (backend_conn === "unreachable") {
       nex_status = "unreachable application backend";
       user_output = "Please make sure you're using our latest Nex assistant version";
@@ -69,7 +77,7 @@
 
       const titleInterval = setInterval(() => {
         appendOutput();
-        if (user_output.length >= raw_user_output.length) {
+        if (user_output.length >= raw_user_output.length && !clearing) {
           clearInterval(titleInterval);
           nex_status = "ready";
         }
@@ -77,16 +85,16 @@
     } catch (error) {
       user_output = "There was an error processing your request. Please try again.";
       nex_status = "unavailable";
-      log(2, "Failed to send prompt: " + error);
+      await log(2, "Failed to send prompt: " + error);
     }
   }
 
   // Scheduler for logo shadow animation
-  function scheduler() {
+  function scheduler(): number {
     let shadowSize = 0;
     let growing = true;
 
-    const statusColors = {
+    const statusColors: Record<Status, string> = {
       "ready": "lightgreen",
       "generating": "#ffffff",
       "not checked": "#ffffff",
@@ -104,15 +112,18 @@
       "unreachable": 0
     };
 
+    function shouldAnimate(status: Status): boolean {
+      return status === "ready" || status === "generating";
+    }
 
-    function updateShadow() {
+    function updateShadow(): void {
       const color = statusColors[nex_status];
-      const animate = nex_status === "ready" || nex_status === "generating";
+      const animate = shouldAnimate(nex_status);
       const rate = shadowQuantity[nex_status] || 0;
 
       if (animate) {
         shadowSize = growing ? shadowSize + rate : shadowSize - rate;
-        growing = shadowSize >= 3 ? false : shadowSize <= rate;
+        growing = shadowSize >= 3 ? false : shadowSize <= rate ? true : growing;
       } else {
         shadowSize = 1.5;
       }
@@ -126,19 +137,35 @@
   }
 
   // Update the title text incrementally
-  function updateTitle() {
-    nex_title = title_letters.slice(0, nex_title.length + 1);
+  function updateTitle(): void {
+    if (nex_title.length < title_letters.length) {
+      nex_title += title_letters[nex_title.length];
+    }
   }
 
   // Clear output
-  function clearOutput() {
+  function clearOutput(): void {
     raw_user_output = "";
-    user_output = "";
+    clearing = true;
+    const clearIntervalId = setInterval(() => {
+      removeOutput();
+      if (user_output.length <= 1) {
+        clearInterval(clearIntervalId);
+        clearing = false;
+      }
+    }, 1);
   }
 
   // Append output incrementally
-  function appendOutput() {
-    user_output += raw_user_output[user_output.length];
+  function appendOutput(): void {
+    if (!clearing && user_output.length < raw_user_output.length) {
+      user_output += raw_user_output[user_output.length];
+    }
+  }
+
+  // Remove one character each iteration from user_output
+  function removeOutput(): void {
+    user_output = user_output.length > 2 ? user_output.slice(0, -1) : "";
   }
 
   // Initialize on mount
@@ -149,7 +176,6 @@
     checkAIStatus();
   });
 </script>
-
 
 <!-- Svelte Component HTML -->
 <div class="container">
