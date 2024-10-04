@@ -7,7 +7,7 @@
 
 - **Virtual Assistant**: Interact with an AI-powered assistant that can help you with various tasks.
 - **Customizable Model**: Choose your AI model and even customize its identity and behavior.
-- **Provider Variety**: Choose your ai provider (OpenAI, Google, Ollama, ...) that gen-ai supports:
+- **Provider Variety**: Choose your ai provider that gen-ai supports:
   - OpenAI
   - Ollama
   - Gemini (Google)
