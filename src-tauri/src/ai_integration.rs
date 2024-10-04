@@ -42,7 +42,7 @@ pub async fn send_ai_request(text_prompt: &str) -> Result<String> {
 pub async fn test_ai_availability() -> bool {
     let client = Client::default();
 
-    // Retrieve model names for the Ollama AdapterKind
+    // Retrieve model names for the choosen AdapterKind
     let models = match client.all_model_names(AI_PROVIDER).await {
         Ok(models) => models,
         Err(_) => {
