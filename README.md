@@ -7,6 +7,13 @@
 
 - **Virtual Assistant**: Interact with an AI-powered assistant that can help you with various tasks.
 - **Customizable Model**: Choose your AI model and even customize its identity and behavior.
+- **Provider Variety**: Choose your ai provider (OpenAI, Google, Ollama, ...) that gen-ai supports:
+  - OpenAI
+  - Ollama
+  - Gemini (Google)
+  - Anthropic (Claude)
+  - Groq
+  - Cohere
 - **User-Friendly UI**: Built with a clean and intuitive interface.
 - **Tauri Framework**: Developed using Tauri for a lightweight and secure desktop application.
 
