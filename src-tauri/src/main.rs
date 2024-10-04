@@ -1,8 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod ollama_integration;
-use ollama_integration::{send_ollama_request, test_ai_availability};
+mod ai_integration;
+use ai_integration::{send_ai_request, test_ai_availability};
 
 /// The level of logging information for log() function
 #[derive(PartialEq, Clone)]
@@ -35,7 +35,7 @@ impl InfoLevel {
 // async fn send_prompt(history: &str, prompt: &str) -> Result<String, String> {
     async fn send_prompt(prompt: &str) -> Result<String, String> {
     // match send_ollama_request(history, prompt).await {
-        match send_ollama_request(prompt).await {
+        match send_ai_request(prompt).await {
         Ok(n) => Ok(n),
         _ => Err(String::from("Error while tried to send a request")) 
     }
