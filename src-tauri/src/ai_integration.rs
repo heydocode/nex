@@ -52,7 +52,7 @@ pub async fn test_ai_availability() -> bool {
         }
     };
 
-    let model_available = models.iter().any(|model| model == MODEL);
+    let model_available = models.iter().any(|model| model.starts_with(MODEL));
 
     if !model_available {
         #[cfg(debug_assertions)]
