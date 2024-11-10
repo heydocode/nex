@@ -3,6 +3,10 @@
 - Nex is a personal project aimed at creating a cool UI with AI support. This project allows you to interact with a virtual assistant powered by AI using the Ollama API and the `ollama-rs` library.
 - This project was made to become more familiar with Svelte Kit, Tauri, typescript and Web development in general, so the code can be dirty sometimes, even if the project is done (finished), I'll try to do the code cleaner on web side (in the rust side everything should be OK).
 
+## Technologies
+
+This project uses [`tauri`](https://tauri.app/) and [`genai`](https://docs.rs/crate/genai/latest) in pair with the **Rust** programming language and web components use **Typescript**, **HTML**, **CSS** and **Svelte**.
+
 ## Features
 
 - **Virtual Assistant**: Interact with an AI-powered assistant that can help you with various tasks.
